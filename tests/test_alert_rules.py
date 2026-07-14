@@ -1,7 +1,9 @@
 """Tests for the alert rules and the LAN access guard."""
 
+from dataclasses import replace
 from unittest.mock import patch
 
+from app import alerts
 from app.alerts import Notifier
 from app.netguard import _is_allowed
 from app.parser import parse_line
@@ -12,8 +14,9 @@ def _sent_by(line: str) -> bool:
     notifier = Notifier()
     entry = parse_line(line)
     assert entry is not None
+    enabled_settings = replace(alerts.settings, ntfy_topic="test-topic")
     with (
-        patch.object(Notifier, "enabled", property(lambda self: True)),
+        patch.object(alerts, "settings", enabled_settings),
         patch.object(notifier, "_post", return_value=True) as post,
     ):
         notifier.evaluate(entry)
