@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Watchtower · zima</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='38' fill='%23F2A93B'/%3E%3Ccircle cx='50' cy='50' r='16' fill='%230A101E'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="identity">
+      <div class="beacon" id="beacon" aria-hidden="true"><span class="beacon-sweep"></span></div>
+      <div class="wordmark">
+        <h1>WATCHTOWER</h1>
+        <p class="host"><span id="host">zima</span> · container update log</p>
+      </div>
+    </div>
+    <div class="sweep-clock" role="timer" aria-label="Time until next sweep">
+      <span class="clock-label">next sweep</span>
+      <span class="clock-digits" id="countdown">--:--</span>
+    </div>
+  </header>
+
+  <div class="attention" id="attention" hidden>
+    <span class="attention-lamp" aria-hidden="true"></span>
+    <span id="attention-text"></span>
+  </div>
+
+  <section class="tiles" aria-label="Status overview">
+    <div class="tile">
+      <span class="tile-value" id="stat-last">—</span>
+      <span class="tile-label">last sweep</span>
+    </div>
+    <div class="tile">
+      <span class="tile-value" id="stat-scanned">—</span>
+      <span class="tile-label">containers watched</span>
+    </div>
+    <div class="tile">
+      <span class="tile-value" id="stat-updates">—</span>
+      <span class="tile-label">updates · 24 h</span>
+    </div>
+    <div class="tile" id="tile-failures">
+      <span class="tile-value" id="stat-failures">—</span>
+      <span class="tile-label">failures · 24 h</span>
+    </div>
+  </section>
+
+  <section class="river" aria-label="Log stream">
+    <div class="toolbar">
+      <div class="segmented" role="group" aria-label="Filter by level">
+        <button class="seg is-active" data-level="">All</button>
+        <button class="seg" data-level="info">Info</button>
+        <button class="seg" data-level="warning">Warnings</button>
+        <button class="seg" data-level="error">Errors</button>
+      </div>
+      <input type="search" id="search" placeholder="Search the log…" aria-label="Search the log">
+      <button id="pause" class="pause" aria-pressed="false">Pause</button>
+      <span class="live-pill" id="live-pill"><span class="live-dot"></span>live</span>
+    </div>
+    <ol class="log" id="log" aria-live="off"></ol>
+    <p class="empty" id="empty" hidden>No log entries yet — waiting for watchtower's first sweep.</p>
+  </section>
+
+  <footer class="colophon">
+    <span>tailing <code id="container-name">…</code></span>
+    <span class="sep">·</span>
+    <span>alerts go to <a id="ntfy-link" href="#" target="_blank" rel="noopener">ntfy</a></span>
+    <button id="test-alert" class="ghost">send test alert</button>
+    <span class="sep">·</span>
+    <a href="https://github.com/Reventlow/watchtower_logs" target="_blank" rel="noopener">source</a>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+/* Watchtower log dashboard — "night watch" control room.
+   One committed dark theme: deep indigo surfaces, a single amber beacon
+   as the signal colour, teal for healthy, red for failures. */
+
+:root {
+  --bg: #0A101E;
+  --surface: #101828;
+  --surface-2: #152036;
+  --line: #1E2B47;
+  --ink: #E8EDF8;
+  --dim: #8391AE;
+  --faint: #55617D;
+  --beacon: #F2A93B;
+  --ok: #3BD3A2;
+  --err: #F4586C;
+  --mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace,
+          SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { background: var(--bg); }
+
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 500px at 85% -10%, #13203A 0%, transparent 60%),
+    var(--bg);
+  min-height: 100vh;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 24px 40px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a { color: var(--beacon); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+
+:focus-visible {
+  outline: 2px solid var(--beacon);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+code { font-family: var(--mono); }
+
+/* ------------------------------------------------------------------ */
+/* Masthead: beacon + wordmark left, sweep countdown right             */
+/* ------------------------------------------------------------------ */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.identity { display: flex; align-items: center; gap: 16px; }
+
+.beacon {
+  --lamp: var(--ok);
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  flex: none;
+}
+.beacon::after {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  background: var(--lamp);
+  box-shadow: 0 0 12px 2px var(--lamp);
+}
+.beacon-sweep {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 0deg,
+    transparent 0deg, transparent 290deg,
+    color-mix(in srgb, var(--lamp) 45%, transparent) 350deg,
+    transparent 360deg);
+  animation: sweep 4s linear infinite;
+}
+.beacon.is-warn { --lamp: var(--beacon); }
+.beacon.is-down { --lamp: var(--err); }
+.beacon.is-down .beacon-sweep { animation-duration: 1.6s; }
+
+@keyframes sweep { to { transform: rotate(360deg); } }
+
+.wordmark h1 {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.42em;
+  margin-right: -0.42em; /* balance the trailing tracking */
+}
+.wordmark .host { color: var(--dim); font-size: 13px; margin-top: 2px; }
+
+.sweep-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.clock-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--faint);
+}
+.clock-digits {
+  font-family: var(--mono);
+  font-size: 34px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.clock-digits.is-due { color: var(--beacon); }
+
+/* ------------------------------------------------------------------ */
+/* Attention banner (only when something needs the operator)           */
+/* ------------------------------------------------------------------ */
+
+.attention {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--err) 45%, transparent);
+  background: color-mix(in srgb, var(--err) 10%, transparent);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.attention-lamp {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--err);
+  box-shadow: 0 0 8px 1px var(--err);
+  flex: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Stat tiles                                                          */
+/* ------------------------------------------------------------------ */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tile-value {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.tile-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+}
+.tile.is-bad { border-color: color-mix(in srgb, var(--err) 50%, transparent); }
+.tile.is-bad .tile-value { color: var(--err); }
+
+/* ------------------------------------------------------------------ */
+/* Toolbar                                                             */
+/* ------------------------------------------------------------------ */
+
+.river {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.seg {
+  font: 500 13px var(--sans);
+  color: var(--dim);
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.seg + .seg { border-left: 1px solid var(--line); }
+.seg:hover { color: var(--ink); }
+.seg.is-active { background: var(--bg); color: var(--ink); }
+
+#search {
+  flex: 1;
+  min-width: 160px;
+  font: 400 13px var(--sans);
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+#search::placeholder { color: var(--faint); }
+
+.pause, .ghost {
+  font: 500 13px var(--sans);
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.pause:hover, .ghost:hover { color: var(--ink); }
+.pause[aria-pressed="true"] { color: var(--beacon); border-color: var(--beacon); }
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ok);
+  animation: breathe 2.4s ease-in-out infinite;
+}
+.live-pill.is-off .live-dot { background: var(--faint); animation: none; }
+
+@keyframes breathe { 50% { opacity: 0.35; } }
+
+/* ------------------------------------------------------------------ */
+/* Log river                                                           */
+/* ------------------------------------------------------------------ */
+
+.log {
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 78px 44px 1fr;
+  gap: 12px;
+  padding: 5px 14px 5px 12px;
+  border-left: 2px solid transparent;
+  align-items: baseline;
+}
+.row:hover { background: var(--surface-2); }
+
+.row .t { color: var(--faint); font-variant-numeric: tabular-nums; }
+.row .lv { font-size: 11px; letter-spacing: 0.08em; color: var(--faint); }
+.row .m { color: var(--ink); overflow-wrap: anywhere; }
+
+.row.warning { border-left-color: var(--beacon); }
+.row.warning .lv { color: var(--beacon); }
+.row.error, .row.fatal, .row.panic { border-left-color: var(--err); }
+.row.error .lv, .row.fatal .lv, .row.panic .lv { color: var(--err); }
+.row.is-update { border-left-color: var(--ok); background: color-mix(in srgb, var(--ok) 5%, transparent); }
+.row.is-update .m { color: var(--ok); }
+
+.chip {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--dim);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 6px;
+  margin-left: 6px;
+}
+.chip.good { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.chip.bad { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, transparent); }
+
+.day-sep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 4px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.day-sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.empty { padding: 32px 16px; text-align: center; color: var(--dim); }
+
+/* ------------------------------------------------------------------ */
+/* Footer                                                              */
+/* ------------------------------------------------------------------ */
+
+.colophon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--faint);
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.colophon code { font-size: 12px; color: var(--dim); }
+.colophon .sep { color: var(--line); }
+.ghost { padding: 3px 10px; font-size: 12px; }
+
+/* ------------------------------------------------------------------ */
+/* Responsive + reduced motion                                         */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+  .clock-digits { font-size: 26px; }
+  .row { grid-template-columns: 66px 1fr; }
+  .row .lv { display: none; }
+  .log { max-height: 55vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beacon-sweep { animation: none; opacity: 0; }
+  .live-dot { animation: none; }
+}

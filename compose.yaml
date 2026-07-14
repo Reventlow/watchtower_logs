@@ -1,0 +1,35 @@
+# Deployment compose file for ZimaOS (installed via the ZimaOS API).
+# The watchtower labels opt this container into watchtower's own
+# --label-enable update cycle, so the dashboard updates itself.
+name: watchtower-logs
+services:
+    watchtower-logs:
+        image: ghcr.io/reventlow/watchtower_logs:latest
+        restart: unless-stopped
+        ports:
+            - "8096:8000"
+        environment:
+            HOST_LABEL: zima
+            SCAN_INTERVAL_SECONDS: "600"
+            NTFY_URL: https://ntfy.blacklog.net
+            NTFY_TOPIC: watchtower-zima-b5d109e5
+            # LAN-only guard; RFC1918 + loopback (defaults, spelled out).
+            ALLOWED_NETWORKS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128,fc00::/7,fe80::/10
+        labels:
+            com.centurylinklabs.watchtower.enable: "true"
+            icon: https://icon.casaos.io/main/all/watchtower.png
+        volumes:
+            - type: bind
+              source: /var/run/docker.sock
+              target: /var/run/docker.sock
+              read_only: true
+networks:
+    default:
+        name: watchtower-logs_default
+x-casaos:
+    author: self
+    category: self
+    icon: https://icon.casaos.io/main/all/watchtower.png
+    title:
+        custom: watchtower-logs
+        en_us: watchtower-logs
