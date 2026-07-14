@@ -13,8 +13,12 @@ services:
             SCAN_INTERVAL_SECONDS: "600"
             NTFY_URL: https://ntfy.blacklog.net
             NTFY_TOPIC: watchtower-zima-b5d109e5
-            # LAN-only guard; RFC1918 + loopback (defaults, spelled out).
-            ALLOWED_NETWORKS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128,fc00::/7,fe80::/10
+            # LAN-only guard; RFC1918 + loopback, plus the router's WAN IP:
+            # hairpinned LAN traffic (LAN client -> watchtower.blacklog.net
+            # -> router -> NPM) is masqueraded to that address. External
+            # clients always arrive with their own source IP, so this does
+            # not open the site to the internet. Update if the ISP IP changes.
+            ALLOWED_NETWORKS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128,fc00::/7,fe80::/10,87.52.105.97/32
         labels:
             com.centurylinklabs.watchtower.enable: "true"
             icon: https://icon.casaos.io/main/all/watchtower.png
