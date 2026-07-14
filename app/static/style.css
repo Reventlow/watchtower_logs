@@ -356,30 +356,96 @@ body.gate {
   place-items: center;
   max-width: none;
   padding: 24px;
+  overflow: hidden;
+  position: relative;
 }
 
+/* The lighthouse beam: a huge, slow conic sweep pinned above the fold. */
+.gate-beam {
+  position: fixed;
+  top: -60vmax;
+  left: 50%;
+  width: 120vmax;
+  height: 120vmax;
+  margin-left: -60vmax;
+  pointer-events: none;
+  background: conic-gradient(from 0deg,
+    transparent 0deg, transparent 22deg,
+    color-mix(in srgb, var(--beacon) 10%, transparent) 30deg,
+    color-mix(in srgb, var(--beacon) 18%, transparent) 33deg,
+    color-mix(in srgb, var(--beacon) 10%, transparent) 36deg,
+    transparent 44deg, transparent 360deg);
+  animation: beam-sweep 26s linear infinite;
+}
+@keyframes beam-sweep { to { transform: rotate(360deg); } }
+
+/* Faint log lines drifting up behind the card: the watch never stops. */
+.gate-murmur {
+  position: fixed;
+  inset: auto 0 0 0;
+  padding: 0 24px 12px;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 2.3;
+  color: color-mix(in srgb, var(--faint) 26%, transparent);
+  white-space: nowrap;
+  mask-image: linear-gradient(to top, rgb(0 0 0 / 0.75), transparent 85%);
+}
+/* Stagger the lines so they read as drifting fragments, not a table. */
+.gate-murmur p:nth-child(2) { margin-left: 14ch; }
+.gate-murmur p:nth-child(3) { margin-left: 4ch; }
+.gate-murmur p:nth-child(4) { margin-left: 22ch; }
+.gate-murmur p:nth-child(5) { margin-left: 8ch; }
+.gate-murmur p:nth-child(6) { margin-left: 17ch; }
+
 .gate-card {
-  width: min(380px, 100%);
-  background: var(--surface);
+  position: relative;
+  width: min(400px, 100%);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(6px);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 28px;
+  border-radius: 16px;
+  padding: 36px 32px 30px;
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.7);
+  animation: gate-rise 0.45s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes gate-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+.gate-card.is-shaking { animation: gate-shake 0.4s ease; }
+@keyframes gate-shake {
+  20%, 60% { transform: translateX(-7px); }
+  40%, 80% { transform: translateX(7px); }
 }
 
 .gate-head {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
+  text-align: center;
+  gap: 4px;
+  margin-bottom: 26px;
 }
+.gate-beacon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+}
+.gate-beacon::after { inset: 23px; }
 .gate-wordmark {
   font-family: var(--mono);
-  font-size: 17px;
+  font-size: 21px;
   font-weight: 700;
-  letter-spacing: 0.38em;
-  margin-right: -0.38em;
+  letter-spacing: 0.44em;
+  margin-right: -0.44em;
 }
-.gate-sub { color: var(--dim); font-size: 13px; margin-top: 2px; }
+.gate-sub {
+  color: var(--dim);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
 
 .gate-card label {
   display: block;
@@ -387,7 +453,7 @@ body.gate {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--faint);
-  margin: 14px 0 6px;
+  margin: 16px 0 6px;
 }
 .gate-card input {
   width: 100%;
@@ -395,15 +461,29 @@ body.gate {
   color: var(--ink);
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 9px;
+  padding: 11px 13px;
+  transition: border-color 0.15s ease;
 }
-.gate-card input#code {
+.gate-card input:hover { border-color: color-mix(in srgb, var(--line) 40%, var(--dim)); }
+.gate-card input:focus-visible {
+  outline: none;
+  border-color: var(--beacon);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--beacon) 18%, transparent);
+}
+
+/* Six-digit code: one input drawn as six underlined cells. */
+.gate-card input.gate-code {
   font-family: var(--mono);
-  font-size: 18px;
-  letter-spacing: 0.35em;
+  font-size: 26px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.6em;
+  padding: 12px 0 12px 0.6em; /* left pad recentres the tracked glyphs */
+  font-variant-numeric: tabular-nums;
+  caret-color: var(--beacon);
 }
-.gate-card input:focus-visible { outline-offset: 0; }
+.gate-card input.gate-code::placeholder { color: var(--faint); }
 
 .gate-error {
   margin-top: 14px;
@@ -418,16 +498,19 @@ body.gate {
 
 .gate-card button[type="submit"] {
   width: 100%;
-  margin-top: 18px;
+  margin-top: 20px;
   font: 600 14px var(--sans);
+  letter-spacing: 0.02em;
   color: var(--bg);
   background: var(--beacon);
   border: none;
-  border-radius: 8px;
-  padding: 11px;
+  border-radius: 9px;
+  padding: 12px;
   cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
 }
-.gate-card button[type="submit"]:hover { filter: brightness(1.08); }
+.gate-card button[type="submit"]:hover { filter: brightness(1.1); }
+.gate-card button[type="submit"]:active { transform: translateY(1px); }
 .gate-card button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
 
 .gate-note {
@@ -452,4 +535,7 @@ body.gate {
 @media (prefers-reduced-motion: reduce) {
   .beacon-sweep { animation: none; opacity: 0; }
   .live-dot { animation: none; }
+  .gate-beam { animation: none; opacity: 0.5; }
+  .gate-card { animation: none; }
+  .gate-card.is-shaking { animation: none; }
 }

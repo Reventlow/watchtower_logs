@@ -10,13 +10,23 @@
 </head>
 <body class="gate">
 
+  <!-- Lighthouse beam sweeping the night sky behind the card -->
+  <div class="gate-beam" aria-hidden="true"></div>
+  <!-- Faint drifting log lines: the watch goes on behind the door -->
+  <div class="gate-murmur" aria-hidden="true">
+    <p>07:57:19 session done · scanned 2 · updated 1 · failed 0</p>
+    <p>07:57:17 found new image ghcr.io/reventlow/…</p>
+    <p>07:47:16 session done · scanned 2 · updated 0 · failed 0</p>
+    <p>07:37:18 creating /usb-creator-repo-1</p>
+    <p>07:27:16 session done · scanned 2 · updated 0 · failed 0</p>
+    <p>07:17:16 session done · scanned 2 · updated 0 · failed 0</p>
+  </div>
+
   <main class="gate-card">
     <div class="gate-head">
-      <div class="beacon" aria-hidden="true"><span class="beacon-sweep"></span></div>
-      <div>
-        <h1 class="gate-wordmark">WATCHTOWER</h1>
-        <p class="gate-sub">zima · sign in to continue</p>
-      </div>
+      <div class="beacon gate-beacon" aria-hidden="true"><span class="beacon-sweep"></span></div>
+      <h1 class="gate-wordmark">WATCHTOWER</h1>
+      <p class="gate-sub">zima · container update log</p>
     </div>
 
     <form id="login-form" novalidate>
@@ -27,8 +37,9 @@
       <input id="password" name="password" type="password" autocomplete="current-password" required>
 
       <label for="code">Authenticator code</label>
-      <input id="code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
-             placeholder="123456" autocomplete="one-time-code" required>
+      <input id="code" name="code" class="gate-code" inputmode="numeric" pattern="[0-9]*"
+             maxlength="6" autocomplete="one-time-code" required
+             aria-description="6-digit code from your authenticator app">
 
       <p class="gate-error" id="error" hidden></p>
 
@@ -42,6 +53,16 @@
     const form = document.getElementById("login-form");
     const error = document.getElementById("error");
     const submit = document.getElementById("submit");
+    const code = document.getElementById("code");
+
+    // Digits only in the code field; submit as soon as the 6th arrives
+    // when the other fields are already filled in.
+    code.addEventListener("input", () => {
+      code.value = code.value.replace(/\D/g, "").slice(0, 6);
+      if (code.value.length === 6 && form.username.value && form.password.value) {
+        form.requestSubmit();
+      }
+    });
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -55,7 +76,7 @@
           body: JSON.stringify({
             username: form.username.value.trim(),
             password: form.password.value,
-            code: form.code.value.trim(),
+            code: code.value,
           }),
         });
         if (response.ok) {
@@ -65,7 +86,10 @@
         const data = await response.json().catch(() => ({}));
         error.textContent = data.detail || "Sign-in failed.";
         error.hidden = false;
-        form.code.value = "";
+        code.value = "";
+        document.querySelector(".gate-card").classList.remove("is-shaking");
+        void document.querySelector(".gate-card").offsetWidth; // restart animation
+        document.querySelector(".gate-card").classList.add("is-shaking");
       } catch {
         error.textContent = "Could not reach the server.";
         error.hidden = false;
