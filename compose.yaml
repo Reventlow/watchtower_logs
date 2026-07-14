@@ -18,7 +18,10 @@ services:
             # -> router -> NPM) is masqueraded to that address. External
             # clients always arrive with their own source IP, so this does
             # not open the site to the internet. Update if the ISP IP changes.
-            ALLOWED_NETWORKS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128,fc00::/7,fe80::/10,87.52.105.97/32
+            # 100.64.0.0/10 is the Tailscale (CGNAT) range: the tailnet is
+            # authenticated and those addresses cannot arrive from the
+            # public internet, so tailnet devices count as local.
+            ALLOWED_NETWORKS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,127.0.0.0/8,::1/128,fc00::/7,fe80::/10,87.52.105.97/32
         labels:
             com.centurylinklabs.watchtower.enable: "true"
             icon: https://icon.casaos.io/main/all/watchtower.png
