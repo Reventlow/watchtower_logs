@@ -132,6 +132,8 @@ code { font-family: var(--mono); }
 /* Attention banner (only when something needs the operator)           */
 /* ------------------------------------------------------------------ */
 
+.attention[hidden] { display: none; } /* display:flex would defeat [hidden] */
+
 .attention {
   display: flex;
   align-items: center;
