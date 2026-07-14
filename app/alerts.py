@@ -83,10 +83,13 @@ class Notifier:
         return "\n".join(parts)
 
     def _send(self, title: str, message: str, priority: str, tags: str) -> None:
+        # time.monotonic() starts near zero on a freshly booted machine,
+        # so "never sent" must be a sentinel, not 0.0 — otherwise every
+        # first alert after boot would be swallowed by the cooldown.
         now = time.monotonic()
         with self._lock:
-            last = self._recent.get(message, 0.0)
-            if now - last < settings.alert_cooldown_seconds:
+            last = self._recent.get(message)
+            if last is not None and now - last < settings.alert_cooldown_seconds:
                 return
             self._recent[message] = now
             # Keep the dedup map from growing forever.
