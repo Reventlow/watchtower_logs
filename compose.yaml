@@ -8,8 +8,8 @@ services:
         restart: unless-stopped
         ports:
             - "8096:8000"
-        # __PLACEHOLDER__ values are filled in from .env.deploy (gitignored)
-        # by scripts/deploy_zima.py — secrets never live in this file.
+        # Double-underscore markers are filled in from .env.deploy
+        # (gitignored) by scripts/deploy_zima.py — secrets never live here.
         environment:
             HOST_LABEL: zima
             SCAN_INTERVAL_SECONDS: "600"
