@@ -26,11 +26,17 @@ watchtower ── docker.sock (ro) ──> tailer thread ──> ring buffer ─
   ring buffer (5000 entries) refilled from `docker logs --tail` on start.
 * **SSE** (`/api/stream`) delivers live entries and stats; the frontend is
   dependency-free vanilla JS.
-* **LAN-only**: every request is checked against `ALLOWED_NETWORKS`
-  (RFC1918 + loopback by default). The check happens in the app itself,
-  so even a misconfigured reverse proxy cannot expose the dashboard —
-  external clients get a 403 because the proxy reports their public IP
-  via `X-Real-IP`.
+* **Authentication**: username + password + TOTP (any authenticator app)
+  on a single login page. Sessions are HMAC-signed cookies with a 30-day
+  absolute expiry; scripts and Claude Code use `Authorization: Bearer`
+  API tokens instead. Login attempts are throttled (10 failures / 15 min
+  per client) and TOTP codes cannot be replayed. All crypto is Python
+  stdlib: PBKDF2-HMAC-SHA256 passwords, RFC 6238 TOTP, HMAC-SHA256
+  sessions.
+* **Optional IP allowlist**: `ALLOWED_NETWORKS` (RFC1918 + loopback when
+  unset) still applies underneath auth; set it to an empty string to rely
+  on authentication alone. The app refuses to start with neither
+  configured.
 
 ## Configuration (environment)
 
@@ -42,8 +48,19 @@ watchtower ── docker.sock (ro) ──> tailer thread ──> ring buffer ─
 | `NTFY_TOPIC` | *(empty = alerts off)* | Topic to publish alerts to |
 | `NTFY_TOKEN` | *(empty)* | Bearer token if the topic needs auth |
 | `ALERT_COOLDOWN_SECONDS` | `600` | Suppress identical alerts inside this window |
-| `ALLOWED_NETWORKS` | RFC1918 + loopback | CIDRs allowed to reach the site |
+| `ALLOWED_NETWORKS` | RFC1918 + loopback | CIDRs allowed to reach the site; `""` disables the IP guard |
+| `AUTH_USERNAME` | `gorm` | Login username |
+| `AUTH_PASSWORD_HASH` | *(empty = auth off)* | `pbkdf2_sha256:...` — generate with `python -c "from app.auth import hash_password; print(hash_password('...'))"` |
+| `TOTP_SECRET` | *(empty)* | Base32 TOTP secret for the authenticator app |
+| `SESSION_SECRET` | *(empty)* | Random secret signing the session cookies |
+| `SESSION_DAYS` | `30` | Session lifetime |
+| `API_TOKENS` | *(empty)* | Comma-separated bearer tokens for API access |
+| `COOKIE_SECURE` | `false` | Set `true` to make the session cookie https-only |
 | `HOST_LABEL` | `zima` | Host name shown in the header |
+
+Deployment secrets live in `.env.deploy` (gitignored); `scripts/deploy_zima.py`
+renders them into `compose.yaml`'s `__PLACEHOLDER__` markers and applies the
+result through the ZimaOS API.
 
 ## Alert rules
 

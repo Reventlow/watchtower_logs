@@ -277,6 +277,11 @@ $("test-alert").addEventListener("click", async () => {
   setTimeout(() => { button.textContent = "send test alert"; button.disabled = false; }, 3000);
 });
 
+$("logout").addEventListener("click", async () => {
+  await fetch("/auth/logout", { method: "POST" });
+  window.location.replace("/auth/login");
+});
+
 /* ------------------------------------------------------------------ */
 
 loadHistory();

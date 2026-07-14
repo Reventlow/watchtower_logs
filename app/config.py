@@ -41,8 +41,9 @@ class Settings:
     # Suppress duplicate alerts with the same message inside this window.
     alert_cooldown_seconds: int = int(os.environ.get("ALERT_COOLDOWN_SECONDS", "600"))
 
-    # Networks allowed to reach the site. Defaults to RFC1918 + loopback,
-    # which makes the dashboard LAN-only even if a reverse proxy exposes it.
+    # Networks allowed to reach the site. Unset -> RFC1918 + loopback
+    # (LAN-only). Set to an explicit empty string to disable IP filtering
+    # (only sensible when authentication is configured).
     allowed_networks: list[str] = field(
         default_factory=lambda: _csv(
             os.environ.get(
@@ -53,8 +54,27 @@ class Settings:
         )
     )
 
+    # Authentication. Enabled when hash, TOTP secret and session secret are
+    # all present; otherwise the app falls back to the LAN-only IP guard.
+    auth_username: str = os.environ.get("AUTH_USERNAME", "gorm")
+    auth_password_hash: str = os.environ.get("AUTH_PASSWORD_HASH", "")
+    totp_secret: str = os.environ.get("TOTP_SECRET", "")
+    session_secret: str = os.environ.get("SESSION_SECRET", "")
+    session_days: int = int(os.environ.get("SESSION_DAYS", "30"))
+    api_tokens: list[str] = field(
+        default_factory=lambda: _csv(os.environ.get("API_TOKENS", ""))
+    )
+    # Mark the session cookie Secure (https-only). Off by default so login
+    # still works over plain http on the LAN / tailnet.
+    cookie_secure: bool = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
+
     # Human-readable host label shown in the dashboard header.
     host_label: str = os.environ.get("HOST_LABEL", "zima")
+
+    @property
+    def auth_enabled(self) -> bool:
+        """Auth requires all three secrets to be configured."""
+        return bool(self.auth_password_hash and self.totp_secret and self.session_secret)
 
 
 settings = Settings()

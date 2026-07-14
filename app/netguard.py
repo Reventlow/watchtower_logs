@@ -28,25 +28,37 @@ logger = logging.getLogger(__name__)
 
 _NETWORKS = [ipaddress.ip_network(cidr, strict=False) for cidr in settings.allowed_networks]
 
+# Proxy trust is independent of the (configurable) allowlist: forwarding
+# headers are honoured only from private peers, i.e. our own reverse proxy.
+_PRIVATE = [
+    ipaddress.ip_network(cidr)
+    for cidr in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8", "::1/128", "fc00::/7")
+]
 
-def _is_allowed(address: str) -> bool:
-    """True when the address falls inside any allowed network."""
+
+def _in(address: str, networks: list) -> bool:
     try:
         ip = ipaddress.ip_address(address.strip())
     except ValueError:
         return False
     if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped:
         ip = ip.ipv4_mapped
-    return any(ip in network for network in _NETWORKS)
+    return any(ip in network for network in networks)
+
+
+def _is_allowed(address: str) -> bool:
+    """True when the address falls inside any allowed network."""
+    return _in(address, _NETWORKS)
 
 
 def client_ip(request: Request) -> str:
-    """Resolve the effective client address for the access check."""
+    """Resolve the effective client address (used by the IP guard and the
+    login throttle)."""
     peer = request.client.host if request.client else ""
 
     # Only trust forwarding headers when the request came from inside
     # (i.e. from our own reverse proxy on the LAN / docker network).
-    if peer and _is_allowed(peer):
+    if peer and _in(peer, _PRIVATE):
         real_ip = request.headers.get("x-real-ip", "").strip()
         if real_ip:
             return real_ip

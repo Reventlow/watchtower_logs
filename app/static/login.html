@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Sign in · Watchtower</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='38' fill='%23F2A93B'/%3E%3Ccircle cx='50' cy='50' r='16' fill='%230A101E'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="gate">
+
+  <main class="gate-card">
+    <div class="gate-head">
+      <div class="beacon" aria-hidden="true"><span class="beacon-sweep"></span></div>
+      <div>
+        <h1 class="gate-wordmark">WATCHTOWER</h1>
+        <p class="gate-sub">zima · sign in to continue</p>
+      </div>
+    </div>
+
+    <form id="login-form" novalidate>
+      <label for="username">Username</label>
+      <input id="username" name="username" autocomplete="username" required autofocus>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+      <label for="code">Authenticator code</label>
+      <input id="code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             placeholder="123456" autocomplete="one-time-code" required>
+
+      <p class="gate-error" id="error" hidden></p>
+
+      <button type="submit" id="submit">Sign in</button>
+      <p class="gate-note">Stays signed in on this device for 30 days.</p>
+    </form>
+  </main>
+
+  <script>
+    "use strict";
+    const form = document.getElementById("login-form");
+    const error = document.getElementById("error");
+    const submit = document.getElementById("submit");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      error.hidden = true;
+      submit.disabled = true;
+      submit.textContent = "Checking…";
+      try {
+        const response = await fetch("/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: form.username.value.trim(),
+            password: form.password.value,
+            code: form.code.value.trim(),
+          }),
+        });
+        if (response.ok) {
+          window.location.replace("/");
+          return;
+        }
+        const data = await response.json().catch(() => ({}));
+        error.textContent = data.detail || "Sign-in failed.";
+        error.hidden = false;
+        form.code.value = "";
+      } catch {
+        error.textContent = "Could not reach the server.";
+        error.hidden = false;
+      }
+      submit.disabled = false;
+      submit.textContent = "Sign in";
+    });
+  </script>
+</body>
+</html>

@@ -8,20 +8,22 @@ services:
         restart: unless-stopped
         ports:
             - "8096:8000"
+        # __PLACEHOLDER__ values are filled in from .env.deploy (gitignored)
+        # by scripts/deploy_zima.py — secrets never live in this file.
         environment:
             HOST_LABEL: zima
             SCAN_INTERVAL_SECONDS: "600"
             NTFY_URL: https://ntfy.blacklog.net
-            NTFY_TOPIC: watchtower-zima-b5d109e5
-            # LAN-only guard; RFC1918 + loopback, plus the router's WAN IP:
-            # hairpinned LAN traffic (LAN client -> watchtower.blacklog.net
-            # -> router -> NPM) is masqueraded to that address. External
-            # clients always arrive with their own source IP, so this does
-            # not open the site to the internet. Update if the ISP IP changes.
-            # 100.64.0.0/10 is the Tailscale (CGNAT) range: the tailnet is
-            # authenticated and those addresses cannot arrive from the
-            # public internet, so tailnet devices count as local.
-            ALLOWED_NETWORKS: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,127.0.0.0/8,::1/128,fc00::/7,fe80::/10,87.52.105.97/32
+            NTFY_TOPIC: __NTFY_TOPIC__
+            # Access control is authentication (password + TOTP, 30-day
+            # sessions, API bearer tokens) instead of an IP allowlist.
+            ALLOWED_NETWORKS: ""
+            AUTH_USERNAME: __AUTH_USERNAME__
+            AUTH_PASSWORD_HASH: __AUTH_PASSWORD_HASH__
+            TOTP_SECRET: __TOTP_SECRET__
+            SESSION_SECRET: __SESSION_SECRET__
+            SESSION_DAYS: "30"
+            API_TOKENS: __API_TOKENS__
         labels:
             com.centurylinklabs.watchtower.enable: "true"
             icon: https://icon.casaos.io/main/all/watchtower.png
