@@ -219,6 +219,11 @@ code { font-family: var(--mono); }
   padding: 12vh 24px 24px;
   z-index: 50;
 }
+/* display:flex above would otherwise override the hidden attribute's
+   UA display:none — keep the modal closed until the tile is clicked. */
+.modal-backdrop[hidden] {
+  display: none;
+}
 .modal {
   background: var(--surface);
   border: 1px solid var(--line);
