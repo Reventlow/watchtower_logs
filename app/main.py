@@ -158,7 +158,7 @@ async def api_stats() -> dict:
     return store.stats()
 
 
-@app.get("/api/watched")
+@app.get("/api/watched", response_model=None)
 async def api_watched() -> dict | JSONResponse:
     """Containers watchtower watches (enable-label opt-in), for the tile popover."""
     try:
