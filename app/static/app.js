@@ -283,6 +283,60 @@ $("logout").addEventListener("click", async () => {
 });
 
 /* ------------------------------------------------------------------ */
+/* Watched-containers modal                                            */
+/* ------------------------------------------------------------------ */
+
+function renderWatched(containers) {
+  const list = $("watched-list");
+  list.replaceChildren();
+  for (const c of containers) {
+    const li = document.createElement("li");
+
+    const dot = document.createElement("span");
+    dot.className = `state-dot ${c.state === "running" ? "is-running" : "is-stopped"}`;
+    dot.title = c.state;
+
+    const name = document.createElement("span");
+    name.className = "watched-name";
+    name.textContent = c.name;
+
+    const image = document.createElement("span");
+    image.className = "watched-image";
+    image.textContent = c.image;
+
+    li.append(dot, name, image);
+    list.appendChild(li);
+  }
+}
+
+async function openWatched() {
+  $("watched-modal").hidden = false;
+  $("watched-empty").hidden = true;
+  $("watched-list").replaceChildren();
+  try {
+    const response = await fetch("/api/watched");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    renderWatched(data.containers);
+  } catch {
+    $("watched-empty").hidden = false;
+  }
+}
+
+function closeWatched() {
+  $("watched-modal").hidden = true;
+}
+
+$("tile-watched").addEventListener("click", openWatched);
+$("watched-close").addEventListener("click", closeWatched);
+$("watched-modal").addEventListener("click", (event) => {
+  if (event.target === $("watched-modal")) closeWatched();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeWatched();
+});
+
+/* ------------------------------------------------------------------ */
 
 loadHistory();
 connectStream();

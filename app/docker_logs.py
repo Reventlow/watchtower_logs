@@ -59,6 +59,33 @@ def _tail(container: Container, since: datetime | None) -> None:
                 notifier.evaluate(entry)
 
 
+def watched_containers() -> list[dict]:
+    """List the containers watchtower is watching.
+
+    Watchtower runs with --label-enable on this host, so the watched set is
+    exactly the containers labeled com.centurylinklabs.watchtower.enable=true.
+    Includes stopped containers: watchtower still tracks their images.
+    """
+    client = docker.DockerClient(base_url=settings.docker_url)
+    try:
+        containers = client.containers.list(
+            all=True,
+            filters={"label": "com.centurylinklabs.watchtower.enable=true"},
+        )
+        listing = [
+            {
+                "name": container.name,
+                "image": ",".join(container.image.tags or [])
+                or container.attrs.get("Config", {}).get("Image", ""),
+                "state": container.status,
+            }
+            for container in containers
+        ]
+        return sorted(listing, key=lambda item: item["name"])
+    finally:
+        client.close()
+
+
 def run_forever() -> None:
     """Tailer loop: connect, tail, reconnect on failure. Never returns."""
     backoff = 2.0

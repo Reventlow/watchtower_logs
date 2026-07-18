@@ -186,6 +186,98 @@ code { font-family: var(--mono); }
 .tile.is-bad { border-color: color-mix(in srgb, var(--err) 50%, transparent); }
 .tile.is-bad .tile-value { color: var(--err); }
 
+/* The watched tile doubles as a button opening the container list. */
+.tile-button {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.tile-button:hover,
+.tile-button:focus-visible {
+  border-color: color-mix(in srgb, var(--beacon) 55%, transparent);
+  background: var(--surface-2);
+}
+.tile-button .tile-label::after {
+  content: " ▾";
+  color: var(--faint);
+}
+
+/* ------------------------------------------------------------------ */
+/* Watched-containers modal                                            */
+/* ------------------------------------------------------------------ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 24px 24px;
+  z-index: 50;
+}
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  width: min(560px, 100%);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.5);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.modal-head h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--dim);
+  font-weight: 600;
+}
+.watched-list {
+  list-style: none;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.watched-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.watched-list li:last-child { border-bottom: none; }
+.state-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  align-self: center;
+}
+.state-dot.is-running { background: var(--ok); }
+.state-dot.is-stopped { background: var(--err); }
+.watched-name { color: var(--ink); }
+.watched-image {
+  color: var(--faint);
+  font-size: 12px;
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 55%;
+}
+
 /* ------------------------------------------------------------------ */
 /* Toolbar                                                             */
 /* ------------------------------------------------------------------ */

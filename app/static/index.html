@@ -34,10 +34,11 @@
       <span class="tile-value" id="stat-last">—</span>
       <span class="tile-label">last sweep</span>
     </div>
-    <div class="tile">
+    <button class="tile tile-button" id="tile-watched" aria-haspopup="dialog"
+            title="Show the watched containers">
       <span class="tile-value" id="stat-scanned">—</span>
       <span class="tile-label">containers watched</span>
-    </div>
+    </button>
     <div class="tile">
       <span class="tile-value" id="stat-updates">—</span>
       <span class="tile-label">updates · 24 h</span>
@@ -74,6 +75,17 @@
     <span class="sep">·</span>
     <button id="logout" class="ghost">sign out</button>
   </footer>
+
+  <div class="modal-backdrop" id="watched-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="watched-title">
+      <header class="modal-head">
+        <h2 id="watched-title">watched containers</h2>
+        <button class="ghost" id="watched-close" aria-label="Close">close</button>
+      </header>
+      <ul class="watched-list" id="watched-list"></ul>
+      <p class="empty" id="watched-empty" hidden>Could not query Docker for the watched containers.</p>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>

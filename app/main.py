@@ -7,6 +7,7 @@ Routes:
   POST /auth/logout    - clear the session cookie
   GET  /api/logs       - historical entries (filterable)
   GET  /api/stats      - aggregate stats for the header / stat tiles
+  GET  /api/watched    - containers watchtower watches (enable label)
   GET  /api/stream     - server-sent events with live entries + stats
   POST /api/test-alert - send a test notification to ntfy
   GET  /healthz        - container healthcheck
@@ -155,6 +156,17 @@ async def api_logs(
 @app.get("/api/stats")
 async def api_stats() -> dict:
     return store.stats()
+
+
+@app.get("/api/watched")
+async def api_watched() -> dict | JSONResponse:
+    """Containers watchtower watches (enable-label opt-in), for the tile popover."""
+    try:
+        containers = await asyncio.to_thread(docker_logs.watched_containers)
+    except Exception:
+        logger.exception("Failed to list watched containers")
+        return JSONResponse(status_code=502, content={"detail": "Docker query failed."})
+    return {"containers": containers}
 
 
 @app.get("/api/stream")
